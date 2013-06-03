@@ -82,14 +82,20 @@ mailing2.data = data2
 mailing2.mail()
 ```
 
-### Browsing configs
+### Configs
+
+Browsing: 
 
 ```python
 config = stampr.Config[123123]
 configs = stampr.Config.all()
 ```
 
-### Browsing batches
+Configs cannot be deleted.
+
+### Batches
+
+Browsing:
 
 ```python
 import datetime
@@ -102,20 +108,23 @@ batches = stampr.Batch.browse(from, to)
 batches = stampr.Batch.browse(from, to, status=stampr.Batch.PROCESSING)
 ```
 
-### Updating batches
+Updating:
 
 ```python
 batch = stampr.Batch[2451]
 batch.status = stampr.Batch.ARCHIVE
 ```
 
-### Deleting batches
+Deletion:
 
 ```python
-stampr.Batch[2451].delete()
+batch = stampr.Batch[2451]
+batch.delete()
 ```
 
-### Browsing mailings
+### Mailings
+
+Browsing:
 
 ```python
 import datetime
@@ -130,10 +139,11 @@ mailings = stampr.Mailing.browse(from, to, batch=my_batch]
 mailings = stampr.Mailing.browse(from, to, status=stampr.Mailing.PROCESSING, batch=my_batch]
 ```
 
-### Deleting mailings
+Deletion:
 
 ```python
-stampr.Mailing[2451].delete()
+mailing = stampr.Mailing[2451]
+mailing.delete()
 ```
 
 ### Using mail-merge with [Mustache template](http://mustache.github.io/)
