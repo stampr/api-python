@@ -1,7 +1,7 @@
 Stampr
 ======
 
-Wrapper for the Stampr API.
+Python wrapper for the Stampr API.
 
 Author: Bil Bas (bil.bas.dev@gmail.com)
 
