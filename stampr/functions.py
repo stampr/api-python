@@ -9,8 +9,10 @@ def authenticate(username, password):
     '''Authenticate your Stampr account with username and password.
 
     Args:
-        username: [str] Account username.
-        password: [str] Account password.
+        username (str):
+            Account username.
+        password (str):
+            Account password.
 
     Returns:
         [stampr.client.Client]

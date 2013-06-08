@@ -74,7 +74,7 @@ class Mailing(MailingMeta(str('MailingParent'), (object, ), {})):
         '''Browse mailings
 
         Get the mailing between two times, optionally only with a specific
-        status and/or in a specific batch (batch OR batch_id should be used)
+        status and/or in a specific batch.
         
         Example::
 
@@ -83,10 +83,10 @@ class Mailing(MailingMeta(str('MailingParent'), (object, ), {})):
 
             my_batch = stampr.batch.Batch[1234]
         
-            mailings = stampr.mailing.Mailing(start, end)
-            mailings = stampr.mailing.Mailing(start, end, status="processing")
-            mailings = stampr.mailing.Mailing(start, end, batch=my_batch)
-            mailings = stampr.mailing.Mailing(start, end, status="processing", batch"my_batch)
+            mailings = stampr.mailing.Mailing.browse(start, end)
+            mailings = stampr.mailing.Mailing.browse(start, end, status="processing")
+            mailings = stampr.mailing.Mailing.browse(start, end, batch=my_batch)
+            mailings = stampr.mailing.Mailing.browse(start, end, status="processing", batch"my_batch)
         
         Args:
             start (datetime.datetime):
@@ -156,7 +156,7 @@ class Mailing(MailingMeta(str('MailingParent'), (object, ), {})):
 
     
     def is_created(self):
-        '''Has the Batch been created already?'''
+        '''Has the Mailing been created already?'''
         return self._id is not None
 
         
