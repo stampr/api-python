@@ -23,7 +23,7 @@ class TestAuthenticate(object):
 
 class TestMail(object):
     def test_no_authentication(self):
-        stampr.client.Client.current = None
+        stampr.client.Client._current = stampr.client.NullClient()
         with raises(stampr.exceptions.APIError):
             stampr.mail("from", "to", "body")
             

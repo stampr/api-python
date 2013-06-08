@@ -13,7 +13,23 @@ from .exceptions import APIError, HTTPError
 
 os.environ['REQUESTS_CA_BUNDLE'] = certifi.where()
 
-class Client(object):
+class NullClient(object):
+    '''Client when there is no client specified (that is, the user hasn't authenticated)'''
+
+    @classmethod
+    def __getattr__(cls, name):
+        raise APIError("Not authenticated! Use stampr.authenticate() first.")
+
+
+class ClientMeta(type):
+    _current = NullClient() # Current client created via authenticate().
+
+    @property
+    def current(self):
+        return self._current
+
+
+class Client((ClientMeta(str('ClientParent'), (object, ), {}))):
     '''Client that handles the actual RESTful actions.
 
     Args:
@@ -22,8 +38,7 @@ class Client(object):
     '''
 
     BASE_URI = "https://testing.dev.stam.pr/api"
-    current = None # Current client created via authenticate().
-
+    
     def __init__(self, username, password):
         if not isinstance(username, string):
             raise TypeError("username must be a string")
@@ -32,6 +47,8 @@ class Client(object):
 
         self._username, self._password = username, password
         self.ping()
+
+        Client._current = self
 
 
     @property

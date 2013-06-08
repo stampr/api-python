@@ -129,6 +129,11 @@ class TestConfigReturnEnvelope(Test):
 
 
 class TestConfigCreate(Test):
+    def test_no_authentication(self):
+        stampr.client.Client._current = stampr.client.NullClient()
+        with raises(stampr.exceptions.APIError):
+            self.uncreated.create()
+
     def test_creation(self):
         (flexmock(stampr.client.Client.current)
             .should_receive("_api")
@@ -141,6 +146,11 @@ class TestConfigCreate(Test):
 
 
 class TestConfigIndex(Test):
+    def test_no_authentication(self):
+        stampr.client.Client._current = stampr.client.NullClient()
+        with raises(stampr.exceptions.APIError):
+            stampr.config.Config[4677]
+
     def test_indexing(self):
         (flexmock(stampr.client.Client.current)
             .should_receive("_api")
@@ -162,6 +172,11 @@ class TestConfigIndex(Test):
 
 
 class TestConfigAll(Test):
+    def test_no_authentication(self):
+        stampr.client.Client._current = stampr.client.NullClient()
+        with raises(stampr.exceptions.APIError):
+            stampr.config.Config.all()
+
     def test_getting_list(self):
         for i in [0, 1, 2]:
             (flexmock(stampr.client.Client.current)

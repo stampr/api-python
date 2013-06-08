@@ -66,6 +66,12 @@ def TestMailingInit(Test):
 
 
 class TestMailingMail(Test):
+    def test_no_authentication(self):
+        stampr.client.Client._current = stampr.client.NullClient()
+        with raises(stampr.exceptions.APIError):
+            self.uncreated.mail()
+
+
     def test_without_data(self):
         subject = stampr.mailing.Mailing(batch_id=2, address="bleh1", return_address="bleh2")
 
@@ -168,6 +174,12 @@ class TestMailingMail(Test):
 
 
 class TestMailingDelete(Test):
+    def test_no_authentication(self):
+        stampr.client.Client._current = stampr.client.NullClient()
+        with raises(stampr.exceptions.APIError):
+            self.created.delete()
+
+
     def test_if_created(self):
         data = json_data("mailing_create")
         data["return_address"] = data["returnaddress"]
@@ -243,6 +255,11 @@ class TestMailingData(Test):
 
 
 class TestMailingSync(Test):
+    def test_no_authentication(self):
+        stampr.client.Client._current = stampr.client.NullClient()
+        with raises(stampr.exceptions.APIError):
+            self.created.sync()
+
     def test_if_created(self):
         data = json_data("mailing_create")
         data['status'] = 'render'
@@ -262,6 +279,11 @@ class TestMailingSync(Test):
             self.uncreated.sync()
 
 class TestMailingIndexing(Test):
+    def test_no_authentication(self):
+        stampr.client.Client._current = stampr.client.NullClient()
+        with raises(stampr.exceptions.APIError):
+            stampr.mailing.Mailing[1]
+
     def test_valid(self):
         (flexmock(stampr.client.Client.current)
                 .should_receive("_api")
@@ -282,6 +304,11 @@ class TestMailingIndexing(Test):
             stampr.mailing.Mailing["fred"]
 
 class TestMailingBrowse(Test):
+    def test_no_authentication(self):
+        stampr.client.Client._current = stampr.client.NullClient()
+        with raises(stampr.exceptions.APIError):
+            stampr.mailing.Mailing.browse(self.start, self.finish)
+
     def test(self):
         for i in [0, 1, 2]:
             (flexmock(stampr.client.Client.current)

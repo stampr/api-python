@@ -18,7 +18,7 @@ def authenticate(username, password):
         [stampr.client.Client]
     '''
 
-    Client.current = Client(username, password)
+    Client(username, password)
 
 
 def mail(return_address, address, body, config=None, batch=None):
@@ -45,9 +45,6 @@ def mail(return_address, address, body, config=None, batch=None):
     Returns:
         [stampr.mailing.Mailing] The mailing object representing the mail sent.
     '''
-
-    if Client.current is None:
-        raise APIError("Required to authenticate() before mailing")
 
     return Client.current.mail(return_address, address, body, config, batch)
 

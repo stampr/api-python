@@ -21,6 +21,10 @@ class Test(object):
         self.created = stampr.batch.Batch(batch_id=2, config_id=1)
         self.uncreated = stampr.batch.Batch(config_id=1)
 
+        self.start = datetime.datetime(1900, 1, 1, 0, 0, 0)
+        self.finish = datetime.datetime(2000, 1, 1, 0, 0, 0)
+
+
 class TestBatchInit(Test):
     def test_generate_a_config(self):
         (flexmock(stampr.client.Client.current)
@@ -119,6 +123,11 @@ class TestBatchStatusNotCreated(Test):
 
 
 class TestBatchStatusCreated(Test):
+    def test_no_authentication(self):
+        stampr.client.Client._current = stampr.client.NullClient()
+        with raises(stampr.exceptions.APIError):
+            self.created.status = "hold"
+
     def test_accept_a_correct_value_and_update(self):
         subject = self.created
 
@@ -138,6 +147,11 @@ class TestBatchStatusCreated(Test):
 
 
 class TestBatchCreate(Test):
+    def test_no_authentication(self):
+        stampr.client.Client._current = stampr.client.NullClient()
+        with raises(stampr.exceptions.APIError):
+            self.uncreated.create()
+
     def test_post_a_creation_request_without_a_template(self):
         subject = self.uncreated
 
@@ -163,6 +177,11 @@ class TestBatchCreate(Test):
 
 
 class TestBatchDelete(Test):
+    def test_no_authentication(self):
+        stampr.client.Client._current = stampr.client.NullClient()
+        with raises(stampr.exceptions.APIError):
+            self.created.delete()
+
     def test_delete_the_batch(self):
         subject = stampr.batch.Batch(config_id=1, template="Bleh", batch_id=2)
 
@@ -180,6 +199,11 @@ class TestBatchDelete(Test):
 
 
 class TestBatchIndex(Test):
+    def test_no_authentication(self):
+        stampr.client.Client._current = stampr.client.NullClient()
+        with raises(stampr.exceptions.APIError):
+            stampr.batch.Batch[4677]
+
     def test_retreive_a_specific_batch(self):
         (flexmock(stampr.client.Client.current)
                 .should_receive("_api")
@@ -202,6 +226,11 @@ class TestBatchIndex(Test):
 
 
 class TestBatchBrowse(Test):
+    def test_no_authentication(self):
+        stampr.client.Client._current = stampr.client.NullClient()
+        with raises(stampr.exceptions.APIError):
+            stampr.batch.Batch.browse(self.start, self.finish)
+
     def test_retrieve_a_list_over_a_period(self):
         for i in [0, 1, 2]:
             (flexmock(stampr.client.Client.current)
@@ -209,8 +238,7 @@ class TestBatchBrowse(Test):
                 .with_args("get", ("batches", "browse", "1900-01-01T00:00:00", "2000-01-01T00:00:00", i))
                 .and_return(json_data("batches_%d" % i)))
 
-        start, end = datetime.datetime(1900, 1, 1, 0, 0, 0, 0), datetime.datetime(2000, 1, 1, 0, 0, 0, 0)
-        batches = stampr.batch.Batch.browse(start, end)
+        batches = stampr.batch.Batch.browse(self.start, self.finish)
 
         assert [b.id for b in batches] == [2, 3, 4]
 
@@ -227,20 +255,17 @@ class TestBatchBrowseWithStatus(Test):
                 .with_args("get", ("batches", "with", "processing", "1900-01-01T00:00:00", "2000-01-01T00:00:00", i))
                 .and_return(json_data("batches_%d" % i)))
 
-        start, finish = datetime.datetime(1900, 1, 1, 0, 0, 0, 0), datetime.datetime(2000, 1, 1, 0, 0, 0, 0)
-        batches = stampr.batch.Batch.browse(start, finish, status="processing")
+        batches = stampr.batch.Batch.browse(self.start, self.finish, status="processing")
 
         assert [b.id for b in batches] == [2, 3, 4]
 
     def test_fail_with_a_bad_status_type(self):
-        start, finish = datetime.datetime(1900, 1, 1, 0, 0, 0, 0), datetime.datetime(2000, 1, 1, 0, 0, 0, 0)
         with raises(TypeError):
-            stampr.batch.Batch.browse(start, finish, status=12)
+            stampr.batch.Batch.browse(self.start, self.finish, status=12)
 
     def test_fail_with_a_bad_status_value(self):
-        start, finish = datetime.datetime(1900, 1, 1, 0, 0, 0, 0), datetime.datetime(2000, 1, 1, 0, 0, 0, 0)
         with raises(ValueError):
-            stampr.batch.Batch.browse(start, finish, status="frog")
+            stampr.batch.Batch.browse(self.start, self.finish, status="frog")
 
     def test_fail_with_a_bad_period(self):
         with raises(TypeError):
