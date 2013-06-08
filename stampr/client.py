@@ -1,10 +1,10 @@
 from __future__ import absolute_import, unicode_literals, print_function, division
 
 import os
-import requests
 import json
 import datetime
 
+import requests
 import dateutil.parser
 import certifi
 
