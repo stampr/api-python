@@ -134,11 +134,11 @@ class Client(object):
     def _api(self, action, path, **params):
         '''Actually send a RESTful action to path.'''
 
-        if isinstance(path, (tuple, list)):
-            path = "/".join(str(dir) for dir in path)
-        else:
-            path = str(path)
-        
+        if not isinstance(path, tuple):
+            raise TypeError("Expected path to be a tuple")
+
+        path = "/".join(str(dir) for dir in path)
+
         action_method = getattr(requests, action)
         response = action_method(self.BASE_URI + path, data=params, auth=(self.username, self.password))
 
