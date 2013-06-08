@@ -303,6 +303,16 @@ class TestMailingIndexing(Test):
         with raises(TypeError):
             stampr.mailing.Mailing["fred"]
 
+    def test_valid(self):
+        (flexmock(stampr.client.Client.current)
+                .should_receive("_api")
+                .with_args("get", ("mailings", 1))
+                .and_return([]))
+
+        with raises(stampr.exceptions.RequestError):
+            stampr.mailing.Mailing[1]
+            
+
 class TestMailingBrowse(Test):
     def test_no_authentication(self):
         stampr.client.Client._current = stampr.client.NullClient()

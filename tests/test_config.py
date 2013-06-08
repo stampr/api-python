@@ -170,6 +170,15 @@ class TestConfigIndex(Test):
         with raises(ValueError):
             stampr.config.Config[-1]
 
+    def test_not_exists(self):
+        (flexmock(stampr.client.Client.current)
+            .should_receive("_api")
+            .with_args("get", ("configs", 4677))
+            .and_return([]))
+
+        with raises(stampr.exceptions.RequestError):
+            stampr.config.Config[4677]
+
 
 class TestConfigAll(Test):
     def test_no_authentication(self):
@@ -181,7 +190,7 @@ class TestConfigAll(Test):
         for i in [0, 1, 2]:
             (flexmock(stampr.client.Client.current)
                 .should_receive("_api")
-                .with_args("get", ("configs", "all", i))
+                .with_args("get", ("configs", "browse", "all", i))
                 .and_return(json_data("configs_%d" % i)))
 
         configs = stampr.config.Config.all()

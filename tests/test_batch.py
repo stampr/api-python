@@ -133,7 +133,7 @@ class TestBatchStatusCreated(Test):
 
         (flexmock(stampr.client.Client.current)
                 .should_receive("_api")
-                .with_args("post", ["batches", 2], status="hold")
+                .with_args("post", ("batches", 2), status="hold")
                 .and_return(json_data("batch_create")))
 
         assert subject.status == "processing"
@@ -157,7 +157,7 @@ class TestBatchCreate(Test):
 
         (flexmock(stampr.client.Client.current)
                 .should_receive("_api")
-                .with_args("post", ["batches"], config_id=1, status="processing")
+                .with_args("post", ("batches",), config_id=1, status="processing")
                 .and_return(json_data("batch_create")))
 
         subject.create()
@@ -169,7 +169,7 @@ class TestBatchCreate(Test):
 
         (flexmock(stampr.client.Client.current)
                 .should_receive("_api")
-                .with_args("post", ["batches"], config_id=1, status="processing", template="Bleh")
+                .with_args("post", ("batches",), config_id=1, status="processing", template="Bleh")
                 .and_return(json_data("batch_create")))
 
         subject.create()
@@ -187,7 +187,7 @@ class TestBatchDelete(Test):
 
         (flexmock(stampr.client.Client.current)
                 .should_receive("_api")
-                .with_args("delete", ["batches", 2])
+                .with_args("delete", ("batches", 2))
                 .and_return(True))
 
         subject.delete()
@@ -207,11 +207,12 @@ class TestBatchIndex(Test):
     def test_retreive_a_specific_batch(self):
         (flexmock(stampr.client.Client.current)
                 .should_receive("_api")
-                .with_args("get", ["batches", 1])
+                .with_args("get", ("batches", 1))
                 .and_return(json_data("batch_index")))
 
         batch = stampr.batch.Batch[1]
 
+        assert isinstance(batch, stampr.batch.Batch)
         assert batch.id == 2
 
 
@@ -223,6 +224,17 @@ class TestBatchIndex(Test):
     def test_fail_with_a_bad_id(self):
         with raises(TypeError):
             stampr.batch.Batch["fred"]
+
+    def test_retreive_a_specific_batch(self):
+        (flexmock(stampr.client.Client.current)
+                .should_receive("_api")
+                .with_args("get", ("batches", 1))
+                .and_return([]))
+
+        with raises(stampr.exceptions.RequestError):
+            stampr.batch.Batch[1]
+
+
 
 
 class TestBatchBrowse(Test):

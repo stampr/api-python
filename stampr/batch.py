@@ -5,7 +5,7 @@ import datetime
 from .utilities import _bad_attribute, string
 from .client import Client
 from .config import Config
-from .exceptions import APIError, ReadOnlyError
+from .exceptions import APIError, ReadOnlyError, RequestError
 
 class BatchMeta(type):
     def __getitem__(self, id):
@@ -28,9 +28,13 @@ class BatchMeta(type):
         elif id < 0:
             raise ValueError("id should be a positive int")
 
-        batches = Client.current.get(["batches", id])
+        batches = Client.current.get(("batches", id))
 
-        return self(**batches[0])
+        if batches:
+            return self(**batches[0])
+        else:
+            raise RequestError("No such Batch: %d" % id)
+
 
 class Batch(BatchMeta(str('BatchParent'), (object, ), {})):
     '''A batch of stampr.mailing.Mailing objects
@@ -47,6 +51,10 @@ class Batch(BatchMeta(str('BatchParent'), (object, ), {})):
         config_id:
             For internal use only!
         batch_id:
+            For internal use only!
+        user_id:
+            For internal use only!
+        version:
             For internal use only!
     '''
 
@@ -113,7 +121,7 @@ class Batch(BatchMeta(str('BatchParent'), (object, ), {})):
         return self._id is not None
 
 
-    def __init__(self, config=None, template=None, status="processing", config_id=None, batch_id=None,):
+    def __init__(self, config=None, template=None, status="processing", config_id=None, batch_id=None, user_id=None, version=None):
         if config is not None and config_id is not None:
             raise ValueError("Must supply config_id OR config")
 
@@ -181,7 +189,7 @@ class Batch(BatchMeta(str('BatchParent'), (object, ), {})):
                     "status": value,
             }
 
-            Client.current.post(["batches", self.id], **params)
+            Client.current.post(("batches", self.id), **params)
 
         self._status = value
 
@@ -219,7 +227,7 @@ class Batch(BatchMeta(str('BatchParent'), (object, ), {})):
         if self.template is not None:
             params["template"] = self.template 
 
-        result = Client.current.post(["batches"], **params)
+        result = Client.current.post(("batches", ), **params)
                                                                 
         self._id = result["batch_id"]
 
@@ -232,7 +240,7 @@ class Batch(BatchMeta(str('BatchParent'), (object, ), {})):
 
         id, self._id = self._id, None
 
-        Client.current.delete(["batches", id])
+        Client.current.delete(("batches", id))
 
 
     def mailing(self):

@@ -37,7 +37,7 @@ class Client((ClientMeta(str('ClientParent'), (object, ), {}))):
         password: [string]
     '''
 
-    BASE_URI = "https://testing.dev.stam.pr/api"
+    BASE_URI = "https://testing.dev.stam.pr/api/"
     
     def __init__(self, username, password):
         if not isinstance(username, string):
@@ -164,7 +164,7 @@ class Client((ClientMeta(str('ClientParent'), (object, ), {}))):
             try:
                 response.raise_for_status()
             except Exception as ex:
-                raise HTTPError(response.status_code, ex)
+                raise HTTPError(response.status_code, "%s [%s %s]" % (ex, action.upper(), response.url))
 
 
-        return json.loads(response.json())
+        return response.json()

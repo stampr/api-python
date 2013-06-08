@@ -2,7 +2,7 @@ from __future__ import absolute_import, unicode_literals, print_function, divisi
 
 from .utilities import _bad_attribute, string
 from .client import Client
-from .exceptions import ReadOnlyError
+from .exceptions import ReadOnlyError, RequestError
 
 class ConfigMeta(type):
     def __getitem__(self, id):
@@ -22,13 +22,17 @@ class ConfigMeta(type):
             raise ValueError("id must be a positive int")
 
         configs = Client.current.get(("configs", id))
-        config = configs[0]
 
-        # Rename returnenvelope as return_envelope
-        config["return_envelope"] = config["returnenvelope"]
-        del config["returnenvelope"]
+        if configs:
+            config = configs[0]
 
-        return self(**config)
+            # Rename returnenvelope as return_envelope
+            config["return_envelope"] = config["returnenvelope"]
+            del config["returnenvelope"]
+
+            return self(**config)
+        else:
+            raise RequestError("No such config: %d" % id)
 
 
 class Config(ConfigMeta(str('ConfigParent'), (object, ), {})):
@@ -48,6 +52,8 @@ class Config(ConfigMeta(str('ConfigParent'), (object, ), {})):
         config_id: 
             For internal use only!
         user_id:
+            For internal use only!
+        version:
             For internal use only!
     '''
 
@@ -74,7 +80,7 @@ class Config(ConfigMeta(str('ConfigParent'), (object, ), {})):
         i = 0
 
         while True:
-            configs = Client.current.get(("configs", "all", i))
+            configs = Client.current.get(("configs", "browse", "all", i))
             if not configs:
                 break
 
@@ -102,7 +108,8 @@ class Config(ConfigMeta(str('ConfigParent'), (object, ), {})):
                  output="single",
                  return_envelope=False,
                  config_id=None,
-                 user_id=None):
+                 user_id=None,
+                 version=None):
 
         self._size = size
         self._turnaround = turnaround

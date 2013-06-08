@@ -10,7 +10,7 @@ import json
 from .utilities import _bad_attribute, string
 from .client import Client
 from .batch import Batch
-from .exceptions import APIError, ReadOnlyError
+from .exceptions import APIError, ReadOnlyError, RequestError
 
 
 class MailingMeta(type):
@@ -36,11 +36,17 @@ class MailingMeta(type):
 
         mailings = Client.current.get(("mailings", id))
 
-        mailing = mailings[0]
-        mailing["return_address"] = mailing["returnaddress"]
-        del mailing["returnaddress"]
-   
-        return Mailing(**mailing)
+        if mailings:
+            mailing = mailings[0]
+            mailing["return_address"] = mailing["returnaddress"]
+            del mailing["returnaddress"]
+
+            if "pdf" in mailing:
+                del mailing["pdf"]
+       
+            return Mailing(**mailing)
+        else:
+            raise RequestError("No such Mailing: %d" % id)
 
 
 class Mailing(MailingMeta(str('MailingParent'), (object, ), {})):
@@ -62,6 +68,10 @@ class Mailing(MailingMeta(str('MailingParent'), (object, ), {})):
         format:
             Internal use only!
         md5:
+            Internal use only!
+        version:
+            Internal use only!
+        user_id:
             Internal use only!
     '''
 
@@ -152,6 +162,9 @@ class Mailing(MailingMeta(str('MailingParent'), (object, ), {})):
             mailing["return_address"] = mailing["returnaddress"]
             del mailing["returnaddress"]
 
+            if "pdf" in mailing:
+                del mailing["pdf"]
+
         return [Mailing(**m) for m in all_mailings]
 
     
@@ -161,7 +174,7 @@ class Mailing(MailingMeta(str('MailingParent'), (object, ), {})):
 
         
     def __init__(self, return_address=None, address=None, data=None, batch=None, status=None,
-                 batch_id=None, mailing_id=None, format=None, md5=None):
+                 batch_id=None, mailing_id=None, format=None, md5=None, version=None, user_id=None, printer_id=None):
         if batch_id is not None and batch is not None:
             raise ValueError("Must supply batch_id OR batch")
 
