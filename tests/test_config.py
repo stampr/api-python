@@ -2,6 +2,7 @@ from __future__ import absolute_import, unicode_literals, print_function, divisi
 
 import sys
 import os
+import datetime
 
 from pytest import raises
 from flexmock import flexmock
@@ -13,6 +14,7 @@ import stampr
 
 class Test(object):
     def setup(self):
+        (flexmock(stampr.client.Client).should_receive("ping").once())
         stampr.authenticate("user", "pass")
 
         self.uncreated = stampr.config.Config()

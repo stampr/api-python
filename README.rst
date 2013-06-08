@@ -103,7 +103,7 @@ Browsing::
 
     batch = stampr.batch.Batch[2451]
 
-    start, end = datetime.datetime(2012, 1, 1, 0, 0, 0), datetime.now()
+    start, end = datetime.datetime(2012, 1, 1, 0, 0, 0), datetime.datetime.now()
 
     batches = stampr.batch.Batch.browse(start, end)
     batches = stampr.batch.Batch.browse(start, end, status="processing")
@@ -127,7 +127,7 @@ Browsing::
     import datetime
     mailing = stampr.mailing.Mailing[123123]
 
-    start, end = datetime.datetime(2012, 1, 1, 0, 0, 0), datetime.now()
+    start, end = datetime.datetime(2012, 1, 1, 0, 0, 0), datetime.datetime.now()
     my_batch = stampr.batch.Batch[1234]
 
     mailings = stampr.mailing.Mailing.browse(start, end)
@@ -174,7 +174,7 @@ Building
 Additional dependencies::
 
     $ pip install shovel
-    $ pip instlal sphinx
+    $ pip install sphinx
 
 Build documentation with::
 

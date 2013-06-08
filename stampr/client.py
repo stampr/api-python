@@ -25,14 +25,14 @@ class Client(object):
     current = None # Current client created via authenticate().
 
     def __init__(self, username, password):
-        
-
         if not isinstance(username, string):
             raise TypeError("username must be a string")
         if not isinstance(password, string):
             raise TypeError("password must be a string")
 
         self._username, self._password = username, password
+        self.ping()
+
 
     @property
     def username(self):

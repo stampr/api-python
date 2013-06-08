@@ -15,6 +15,7 @@ import stampr
 
 class Test(object):
     def setup(self):
+        (flexmock(stampr.client.Client).should_receive("ping").once())
         stampr.authenticate("user", "pass")
 
         self.created = stampr.batch.Batch(batch_id=2, config_id=1)

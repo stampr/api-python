@@ -14,6 +14,7 @@ import stampr
 
 class Test(object):
     def setup(self):
+        (flexmock(stampr.client.Client).should_receive("ping").once())
         self.client = stampr.client.Client("user", "pass")
 
 class TestClientInit(Test):

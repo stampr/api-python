@@ -2,6 +2,7 @@ from __future__ import absolute_import, unicode_literals, print_function, divisi
 
 import sys
 import os
+import datetime
 
 from pytest import raises
 from flexmock import flexmock
@@ -11,6 +12,12 @@ import stampr
 
 class TestAuthenticate(object):
     def test_creates_client(self):
+        (flexmock(stampr.client.Client)
+                .should_receive("_api")
+                .once()
+                .with_args("get", ("test", "ping"))
+                .and_return({ "pong": datetime.datetime.now().isoformat() }))
+
         stampr.authenticate("user", "pass")
 
 
@@ -19,8 +26,11 @@ class TestMail(object):
         stampr.client.Client.current = None
         with raises(stampr.exceptions.APIError):
             stampr.mail("from", "to", "body")
+            
 
     def test_delegates_to_the_client(self):
+        (flexmock(stampr.client.Client).should_receive("ping").once())
+            
         stampr.authenticate("user", "pass")
 
         new_mailing = flexmock(stampr.mailing.Mailing)
