@@ -1,0 +1,9 @@
+{
+        "mailing_id": 1,
+        "address": "bleh1",
+        "returnaddress": "bleh2",
+        "format": "json",
+        "data": "ey---JmcmVkIjogInNhdmFnZSJ9\n",
+        "batch_id": 2,
+        "status": "received"
+}

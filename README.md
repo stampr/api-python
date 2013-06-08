@@ -1,11 +1,13 @@
 Stampr
 ======
 
-Python wrapper for the Stampr API.
+Python wrapper for the Stampr API. Tested with Python 2.7 & 3.3.
 
 Author: Bil Bas (bil.bas.dev@gmail.com)
 
 Site: https://github.com/stampr/stampr-api-python
+
+Stampr: http://stam.pr
 
 License: MIT
 
@@ -49,15 +51,15 @@ config = stampr.Config()
 
 # Batches contain one or more mailings.
 with stampr.Batch(config=config) as b:
-  with b.mailing() as m:
-    m.address = dest_address_1
-    m.return_address = my_address
-    m.data = body1
+    with b.mailing() as m:
+        m.address = dest_address_1
+        m.return_address = my_address
+        m.data = body1
 
-  with b.mailing() as m:
-    m.address = dest_address_2
-    m.return_address = my_address
-    m.data = body2
+    with b.mailing() as m:
+        m.address = dest_address_2
+        m.return_address = my_address
+        m.data = body2
 ```
 
 And without using blocks:
@@ -102,17 +104,17 @@ import datetime
 
 batch = stampr.Batch[2451]
 
-from, to = datetime.datetime(2012, 1, 1, 0, 0, 0), datetime.datetime.today()
+start, end = datetime.datetime(2012, 1, 1, 0, 0, 0), datetime.now()
 
-batches = stampr.Batch.browse(from, to)
-batches = stampr.Batch.browse(from, to, status=stampr.Batch.PROCESSING)
+batches = stampr.Batch.browse(start, end)
+batches = stampr.Batch.browse(start, end, status="processing")
 ```
 
 Updating:
 
 ```python
 batch = stampr.Batch[2451]
-batch.status = stampr.Batch.ARCHIVE
+batch.status = "archive"
 ```
 
 Deletion:
@@ -130,13 +132,22 @@ Browsing:
 import datetime
 mailing = stampr.Mailing[123123]
 
-from, to = datetime.datetime(2012, 1, 1, 0, 0, 0), datetime.datetime.today()
+start, end = datetime.datetime(2012, 1, 1, 0, 0, 0), datetime.now()
 my_batch = stampr.Batch[1234]
 
-mailings = stampr.Mailing.browse(from, to)
-mailings = stampr.Mailing.browse(from, to, status=stampr.Mailing.PROCESSING]
-mailings = stampr.Mailing.browse(from, to, batch=my_batch]
-mailings = stampr.Mailing.browse(from, to, status=stampr.Mailing.PROCESSING, batch=my_batch]
+mailings = stampr.Mailing.browse(start, end)
+mailings = stampr.Mailing.browse(start, end, status="processing"]
+mailings = stampr.Mailing.browse(start, end, batch=my_batch]
+mailings = stampr.Mailing.browse(start, end, status="processing", batch=my_batch]
+```
+
+Syncing current status:
+
+```python
+mailing = stampr.Mailing[2451]
+mailing.status #=> :received
+mailing.sync()
+mailing.status #=> :render
 ```
 
 Deletion:
@@ -150,17 +161,17 @@ mailing.delete()
 
 ```python
 with stampr.Batch() as b:
-  b.template = "<html>Hello {{name}}, would you like to buy some {{items}}!</html>"
+    b.template = "<html>Hello {{name}}, would you like to buy some {{items}}!</html>"
 
-  with b.mailing() as m:
-    m.address = dest_address_1
-    m.return_address = my_address
-    m.data = { "name": "Marie", "items": "electric eels" }
+    with b.mailing() as m:
+        m.address = dest_address_1
+        m.return_address = my_address
+        m.data = { "name": "Marie", "items": "electric eels" }
 
-  with b.mailing() as m:
-    m.address = dest_address_2
-    m.return_address = my_address
-    m.data = { "name": "Romy", "items": "scintillating hackers" }
+    with b.mailing() as m:
+        m.address = dest_address_2
+        m.return_address = my_address
+        m.data = { "name": "Romy", "items": "scintillating hackers" }
 ```
 
 
