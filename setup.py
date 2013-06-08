@@ -20,7 +20,7 @@ setup(
         "certifi>=0.0.8",
         "python-dateutil>=2.1",
     ],
-    packages = find_packages(),
+    packages = find_packages(exclude=['tests']),
     #include_package_data=True,
     zip_safe=True,
     classifiers=[
