@@ -15,8 +15,8 @@ class Test(object):
     def setup(self):
         stampr.authenticate("user", "pass")
 
-        self.uncreated = stampr.Config()
-        self.created = stampr.Config(config_id=1)
+        self.uncreated = stampr.config.Config()
+        self.created = stampr.config.Config(config_id=1)
         
 
 class TestConfigDefault(Test):
@@ -54,7 +54,7 @@ class TestConfigStyle(Test):
             self.uncreated.style = "fish"
 
     def test_after_create(self):
-        with raises(stampr.ReadOnlyError):
+        with raises(stampr.exceptions.ReadOnlyError):
             self.created.style = "color"
 
 
@@ -72,7 +72,7 @@ class TestConfigTurnaround(Test):
             self.uncreated.turnaround = "fish"
 
     def test_after_create(self):
-        with raises(stampr.ReadOnlyError):
+        with raises(stampr.exceptions.ReadOnlyError):
             self.created.turnaround = "threeday"
 
 
@@ -90,7 +90,7 @@ class TestConfigOutput(Test):
             self.uncreated.output = "fish"
 
     def test_after_create(self):
-        with raises(stampr.ReadOnlyError):
+        with raises(stampr.exceptions.ReadOnlyError):
             self.created.output = "single"
 
 
@@ -108,7 +108,7 @@ class TestConfigSize(Test):
             self.uncreated.size = "fish"
 
     def test_after_create(self):
-        with raises(stampr.ReadOnlyError):
+        with raises(stampr.exceptions.ReadOnlyError):
             self.created.size = "standard"
 
 
@@ -122,13 +122,13 @@ class TestConfigReturnEnvelope(Test):
             self.uncreated.return_envelope = 12
 
     def test_after_create(self):
-        with raises(stampr.ReadOnlyError):
+        with raises(stampr.exceptions.ReadOnlyError):
             self.created.return_envelope = False
 
 
 class TestConfigCreate(Test):
     def test_creation(self):
-        (flexmock(stampr.Client.current)
+        (flexmock(stampr.client.Client.current)
             .should_receive("_api")
             .with_args("post", ("configs",), output="single", returnenvelope=False, size="standard", style="color", turnaround="threeday")
             .and_return(json_data("config_create")))
@@ -140,35 +140,35 @@ class TestConfigCreate(Test):
 
 class TestConfigIndex(Test):
     def test_indexing(self):
-        (flexmock(stampr.Client.current)
+        (flexmock(stampr.client.Client.current)
             .should_receive("_api")
             .with_args("get", ("configs", 4677))
             .and_return(json_data("config_index")))
 
-        config = stampr.Config[4677]
+        config = stampr.config.Config[4677]
 
-        assert isinstance(config, stampr.Config)
+        assert isinstance(config, stampr.config.Config)
         assert config.id == 4677
 
     def test_bad_type(self):
         with raises(TypeError):
-            stampr.Config["frog"]
+            stampr.config.Config["frog"]
 
     def test_bad_value(self):
         with raises(ValueError):
-            stampr.Config[-1]
+            stampr.config.Config[-1]
 
 
 class TestConfigAll(Test):
     def test_getting_list(self):
         for i in [0, 1, 2]:
-            (flexmock(stampr.Client.current)
+            (flexmock(stampr.client.Client.current)
                 .should_receive("_api")
                 .with_args("get", ("configs", "all", i))
                 .and_return(json_data("configs_%d" % i)))
 
-        configs = stampr.Config.all()
+        configs = stampr.config.Config.all()
         config_ids = [c.id for c in configs]
 
-        assert all(isinstance(c, stampr.Config) for c in configs)
+        assert all(isinstance(c, stampr.config.Config) for c in configs)
         assert config_ids == [4677, 4678, 4679]

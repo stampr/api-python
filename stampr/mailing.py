@@ -7,7 +7,7 @@ import re
 import sys
 import json
 
-from .utilities import bad_attribute, string
+from .utilities import _bad_attribute, string
 from .client import Client
 from .batch import Batch
 from .exceptions import APIError, ReadOnlyError
@@ -16,16 +16,17 @@ from .exceptions import APIError, ReadOnlyError
 class MailingMeta(type):
     def __getitem__(self, id):
         '''Get the mailing with the specific ID.
+                
+            Example::
+
+                mailing = stampr.mailing.Mailing[123123]
             
-        Example:
-            mailing = stampr.Mailing[123123]
-        
-        Args:
-            id
-                [int] ID of mailing to retreive.
-        
-        Return:
-            stampr.Mailing
+            Args:
+                id (int):
+                    ID of mailing to retreive.
+            
+            Returns:
+                stampr.mailing.Mailing
         '''
              
         if not isinstance(id, int):
@@ -43,59 +44,80 @@ class MailingMeta(type):
 
 
 class Mailing(MailingMeta(str('MailingParent'), (object, ), {})):
-    '''An individual piece of mail, within a stampr.Batch'''
+    '''An individual piece of mail, within a stampr.batch.Batch
+
+    Args:
+        return_address (str):
+            Address to return to.
+        address (str):
+            Address to send to.
+        data (str, bytes, Hash):
+             Hash for mail merge, str for HTML, bytes for PDF format.
+        batch (stampr.batch.Batch):
+            Batch to assign this mailing to. If not provided, create a default one.
+        mailing_id:
+            Internal use only!
+        batch_id: 
+            Internal use only!
+        format:
+            Internal use only!
+        md5:
+            Internal use only!
+    '''
 
     PDF_HEADER_RE = re.compile(b"\\A%PDF")
 
     STATUSES = ["received", "render", "error", "queued", "assigned", "processing", "printed", "shipped"]
             
     @classmethod
-    def browse(cls, start, end, status=None, batch=None):
-        '''
+    def browse(cls, start, finish, status=None, batch=None):
+        '''Browse mailings
+
         Get the mailing between two times, optionally only with a specific
-        status and/or in a specific batch (:batch OR :batch_id option should be used)
+        status and/or in a specific batch (batch OR batch_id should be used)
         
-        Example:
+        Example::
+
             start = datetime.datetime(2012, 1, 1, 0, 0, 0)
             end = datetime.now()
 
-            my_batch = stampr.Batch[1234]
+            my_batch = stampr.batch.Batch[1234]
         
-            mailings = stampr.Mailing(start, end)
-            mailings = stampr.Mailing(start, end, status="processing")
-            mailings = stampr.Mailing(start, end, batch=my_batch)
-            mailings = stampr.Mailing(start, end, status="processing", batch"my_batch)
+            mailings = stampr.mailing.Mailing(start, end)
+            mailings = stampr.mailing.Mailing(start, end, status="processing")
+            mailings = stampr.mailing.Mailing(start, end, batch=my_batch)
+            mailings = stampr.mailing.Mailing(start, end, status="processing", batch"my_batch)
         
         Args:
-            start
-                [datetime.datetime] Start of time period to get mailings for.
-            end
-                [datetime.datetime] End of time period to get mailings for.
-            status
+            start (datetime.datetime):
+                Start of time period to get mailings for.
+            finish (datetime.datetime): 
+                End of time period to get mailings for.
+            status:
                 ["received", "render", "error", "queued", "assigned", "processing", "printed", "shipped"] Status of mailings to find.
-            batch
-                [stampr.Batch] Batch to retrieve mailings from.
+            batch (stampr.batch.Batch):
+                Batch to retrieve mailings from.
         
-        Return:
-            list of stampr.Mailing
+        Returns:
+            list of stampr.mailing.Mailing
         '''
 
         if not isinstance(start, datetime.datetime):
             raise TypeError("start should be a datetime.datetime")
 
-        if not isinstance(end, datetime.datetime):
-            raise TypeError("end should be a datetime.datetime")
+        if not isinstance(finish, datetime.datetime):
+            raise TypeError("finish should be a datetime.datetime")
 
         if status is not None:
             if not isinstance(status, string):
-                raise TypeError(bad_attribute(status, cls.STATUSES))
+                raise TypeError(_bad_attribute(status, cls.STATUSES))
 
             if status not in cls.STATUSES:
-                raise ValueError(bad_attribute(status, cls.STATUSES))
+                raise ValueError(_bad_attribute(status, cls.STATUSES))
 
         if batch is not None:
             if not isinstance(batch, Batch):
-                raise TypeError("batch should be a stampr.Batch")
+                raise TypeError("batch should be a stampr.batch.Batch")
 
             batch_id = batch.id
         else:
@@ -110,7 +132,7 @@ class Mailing(MailingMeta(str('MailingParent'), (object, ), {})):
         else:
             search = ("mailings", "browse")
 
-        search += (start.isoformat(), end.isoformat())
+        search += (start.isoformat(), finish.isoformat())
 
         all_mailings = []
         i = 0
@@ -140,26 +162,6 @@ class Mailing(MailingMeta(str('MailingParent'), (object, ), {})):
         
     def __init__(self, return_address=None, address=None, data=None, batch=None, status=None,
                  batch_id=None, mailing_id=None, format=None, md5=None):
-        '''
-        Args:
-            return_address
-                [str]
-            address
-                [str]
-            data
-                [str, bytes, Hash] Hash for mail merge, str for HTML, bytes for PDF format.
-            batch
-                [stampr.Batch]
-            mailing_id
-                Internal use only!
-            batch_id
-                Internal use only!
-            format
-                Internal use only!
-            md5
-                Internal use only!
-        '''
-
         if batch_id is not None and batch is not None:
             raise ValueError("Must supply batch_id OR batch")
 
@@ -171,7 +173,7 @@ class Mailing(MailingMeta(str('MailingParent'), (object, ), {})):
 
         elif batch is not None:
             if not isinstance(batch, Batch):
-                raise TypeError("batch must be an stampr.Batch")
+                raise TypeError("batch must be an stampr.batch.Batch")
             self._batch_id = batch.id
 
         else:
@@ -278,7 +280,7 @@ class Mailing(MailingMeta(str('MailingParent'), (object, ), {})):
     def id(self):
         '''Get the id of the mailing. Calling this will mail the mailing first, if required.
     
-        Return:
+        Returns:
             [int]
         '''
 

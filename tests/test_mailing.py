@@ -21,53 +21,53 @@ class Test(object):
     def setup(self):
         stampr.authenticate("user", "pass")
 
-        self.uncreated = stampr.Mailing(batch_id=1)
-        self.created = stampr.Mailing(mailing_id=2, batch_id=1)
-        self.batch = stampr.Batch(batch_id=99, config_id=12)
+        self.uncreated = stampr.mailing.Mailing(batch_id=1)
+        self.created = stampr.mailing.Mailing(mailing_id=2, batch_id=1)
+        self.batch = stampr.batch.Batch(batch_id=99, config_id=12)
         self.start = datetime.datetime(1900, 1, 1, 0, 0, 0)
         self.finish = datetime.datetime(2000, 1, 1, 0, 0, 0)
 
 
 def TestMailingInit(Test):
     def test_generate_batch(self):
-        (flexmock(stampr.Client.current)
+        (flexmock(stampr.client.Client.current)
                 .should_receive("_api")
                 .with_args("post", ["configs"], returnenvelope=False, output="single", turnaround="threeday", size="standard", style="color")
                 .and_return({ "config_id": 7 }))
 
-        (flexmock(stampr.Client.current)
+        (flexmock(stampr.client.Client.current)
                 .should_receive("_api")
                 .with_args("post", ["batches"], config_id=7, status="processing")
                 .and_return({ "batch_id": 2 }))
 
-        subject = stampr.Mailing()
+        subject = stampr.mailing.Mailing()
         assert subject.batch_id == 2
 
     def test_use_both_batch_and_batch_id(self):
         with raises(ValueError):
-            stampr.Mailing(batch_id=2, batch=flexmock())
+            stampr.mailing.Mailing(batch_id=2, batch=flexmock())
 
     def test_bad_data(self):
         with raises(TypeError):
-            stampr.Mailing(batch_id=2, data=12)
+            stampr.mailing.Mailing(batch_id=2, data=12)
 
     def test_good_md5(self):
         data = "sdfsdf"
         md5 = hashlib.md5()
         md5.update("sdfsdf")
         md5_hash = md5.hexdigest()
-        stampr.Mailing(batch_id=2, mailing_id=12, data="sdf", md5=md5_hash)
+        stampr.mailing.Mailing(batch_id=2, mailing_id=12, data="sdf", md5=md5_hash)
 
     def test_bad_md5(self):
         with raises(ValueError):
-            stampr.Mailing(batch_id=2, mailing_id=12, data="sdf", md5="234234")
+            stampr.mailing.Mailing(batch_id=2, mailing_id=12, data="sdf", md5="234234")
 
 
 class TestMailingMail(Test):
     def test_without_data(self):
-        subject = stampr.Mailing(batch_id=2, address="bleh1", return_address="bleh2")
+        subject = stampr.mailing.Mailing(batch_id=2, address="bleh1", return_address="bleh2")
 
-        (flexmock(stampr.Client.current)
+        (flexmock(stampr.client.Client.current)
                 .should_receive("_api")
                 .with_args("post", ("mailings", ),
                            batch_id=2,
@@ -86,9 +86,9 @@ class TestMailingMail(Test):
         data = { "fred": "savage" }
         encoded = base64.encodestring(to_bytes(json.dumps(data)))
 
-        subject = stampr.Mailing(batch_id=2, address="bleh1", return_address="bleh2", data=data)
+        subject = stampr.mailing.Mailing(batch_id=2, address="bleh1", return_address="bleh2", data=data)
 
-        (flexmock(stampr.Client.current)
+        (flexmock(stampr.client.Client.current)
                 .should_receive("_api")
                 .with_args("post", ("mailings",),
                            batch_id=2,
@@ -109,9 +109,9 @@ class TestMailingMail(Test):
         data = "<html>Hello world!</html>"
         encoded = base64.encodestring(to_bytes(data))
 
-        subject = stampr.Mailing(batch_id=2, address="bleh1", return_address="bleh2", data=data)
+        subject = stampr.mailing.Mailing(batch_id=2, address="bleh1", return_address="bleh2", data=data)
 
-        (flexmock(stampr.Client.current)
+        (flexmock(stampr.client.Client.current)
                 .should_receive("_api")
                 .with_args("post", ("mailings",),
                            batch_id=2,
@@ -132,9 +132,9 @@ class TestMailingMail(Test):
         data = b"%PDF1.4..."
         encoded = base64.encodestring(data)
 
-        subject = stampr.Mailing(batch_id=2, address="bleh1", return_address="bleh2", data=data)
+        subject = stampr.mailing.Mailing(batch_id=2, address="bleh1", return_address="bleh2", data=data)
 
-        (flexmock(stampr.Client.current)
+        (flexmock(stampr.client.Client.current)
                 .should_receive("_api")
                 .with_args("post", ("mailings",),
                            batch_id=2,
@@ -153,15 +153,15 @@ class TestMailingMail(Test):
 
     def test_without_an_address(self):
         data = "%PDF1.4..."
-        subject = stampr.Mailing(batch_id=2, return_address="bleh")
+        subject = stampr.mailing.Mailing(batch_id=2, return_address="bleh")
 
-        with raises(stampr.APIError):
+        with raises(stampr.exceptions.APIError):
             subject.mail() 
 
     def test_without_return_address(self):
         data = "%PDF1.4..."
-        subject = stampr.Mailing(batch_id=2, address="bleh")
-        with raises(stampr.APIError):
+        subject = stampr.mailing.Mailing(batch_id=2, address="bleh")
+        with raises(stampr.exceptions.APIError):
             subject.mail()
 
 
@@ -171,9 +171,9 @@ class TestMailingDelete(Test):
         data["return_address"] = data["returnaddress"]
         del data["returnaddress"]
 
-        subject = stampr.Mailing(**data)
+        subject = stampr.mailing.Mailing(**data)
 
-        (flexmock(stampr.Client.current)
+        (flexmock(stampr.client.Client.current)
                 .should_receive("_api")
                 .with_args("delete", ("mailings", 1))
                 .and_return(json_data("mailing_create")))
@@ -182,7 +182,7 @@ class TestMailingDelete(Test):
         assert subject.is_created() == False
 
     def test_if_isnt_created(self):
-        with raises(stampr.APIError):
+        with raises(stampr.exceptions.APIError):
             self.uncreated.delete()
 
 
@@ -200,7 +200,7 @@ class TestMailingAddress(Test):
             self.uncreated.address = 12 
 
     def test_alread_created(self):
-        with raises(stampr.ReadOnlyError):
+        with raises(stampr.exceptions.ReadOnlyError):
             self.created.address = "hello"
 
 
@@ -218,7 +218,7 @@ class TestMailingReturnAddress(Test):
             self.uncreated.return_address = 12 
 
     def test_alread_created(self):
-        with raises(stampr.ReadOnlyError):
+        with raises(stampr.exceptions.ReadOnlyError):
             self.created.return_address = "hello"
 
 
@@ -236,7 +236,7 @@ class TestMailingData(Test):
             self.uncreated.data = 12 
 
     def test_alread_created(self):
-        with raises(stampr.ReadOnlyError):
+        with raises(stampr.exceptions.ReadOnlyError):
             self.created.data = "hello"
 
 
@@ -245,7 +245,7 @@ class TestMailingSync(Test):
         data = json_data("mailing_create")
         data['status'] = 'render'
 
-        (flexmock(stampr.Client.current)
+        (flexmock(stampr.client.Client.current)
                 .should_receive("_api")
                 .with_args("get", ("mailings", 2))
                 .and_return(data))
@@ -256,67 +256,67 @@ class TestMailingSync(Test):
         assert self.created.status == "render"
 
     def test_if_not_created(self):
-        with raises(stampr.APIError):
+        with raises(stampr.exceptions.APIError):
             self.uncreated.sync()
 
 class TestMailingIndexing(Test):
     def test_valid(self):
-        (flexmock(stampr.Client.current)
+        (flexmock(stampr.client.Client.current)
                 .should_receive("_api")
                 .with_args("get", ("mailings", 1))
                 .and_return(json_data("mailing_index")))
 
-        mailing = stampr.Mailing[1]
+        mailing = stampr.mailing.Mailing[1]
 
         assert mailing.id == 1
         assert mailing.status == "received"
 
     def test_bad_id(self):
         with raises(ValueError):
-            stampr.Mailing[0] 
+            stampr.mailing.Mailing[0] 
 
     def test_bad_type(self):
         with raises(TypeError):
-            stampr.Mailing["fred"]
+            stampr.mailing.Mailing["fred"]
 
 class TestMailingBrowse(Test):
     def test(self):
         for i in [0, 1, 2]:
-            (flexmock(stampr.Client.current)
+            (flexmock(stampr.client.Client.current)
                 .should_receive("_api")
                 .with_args("get", ("mailings", "browse", "1900-01-01T00:00:00", "2000-01-01T00:00:00", i))
                 .and_return(json_data("mailings_%d" % i)))
 
 
-        mailings = stampr.Mailing.browse(self.start, self.finish)
+        mailings = stampr.mailing.Mailing.browse(self.start, self.finish)
 
         for mailing in mailings:
-            assert isinstance(mailing,stampr.Mailing)
+            assert isinstance(mailing,stampr.mailing.Mailing)
 
         mailing_ids = [m.id for m in mailings]
         assert mailing_ids == [1, 2, 3]
 
     def test_with_bad_start(self):
         with raises(TypeError):
-            stampr.Mailing.browse(1, self.finish) 
+            stampr.mailing.Mailing.browse(1, self.finish) 
 
     def test_with_bad_finish(self):
         with raises(TypeError):
-            stampr.Mailing.browse(self.start, 2)
+            stampr.mailing.Mailing.browse(self.start, 2)
 
 
 class TestMailingWithBatch(Test):
     def test(self):
         for i in [0, 1, 2]:
-            (flexmock(stampr.Client.current)
+            (flexmock(stampr.client.Client.current)
                 .should_receive("_api")
                 .with_args("get", ("batches", self.batch.id, "browse", "1900-01-01T00:00:00", "2000-01-01T00:00:00", i))
                 .and_return(json_data("mailings_%d" % i)))
 
-        mailings = stampr.Mailing.browse(self.start, self.finish, batch=self.batch)
+        mailings = stampr.mailing.Mailing.browse(self.start, self.finish, batch=self.batch)
 
         for mailing in mailings:
-            assert isinstance(mailing, stampr.Mailing)
+            assert isinstance(mailing, stampr.mailing.Mailing)
 
         mailing_ids = [m.id for m in mailings]
         assert mailing_ids == [1, 2, 3]
@@ -324,47 +324,47 @@ class TestMailingWithBatch(Test):
 
     def test_bad_batch(self):
         with raises(TypeError):
-            stampr.Mailing.browse(self.start, self.finish, batch=1)
+            stampr.mailing.Mailing.browse(self.start, self.finish, batch=1)
 
 
 class TestMailingWithStatus(Test):
     def test(self):
         for i in [0, 1, 2]:
-            (flexmock(stampr.Client.current)
+            (flexmock(stampr.client.Client.current)
                 .should_receive("_api")
                 .with_args("get", ("mailings", "with", "processing", "1900-01-01T00:00:00", "2000-01-01T00:00:00", i))
                 .and_return(json_data("mailings_%d" % i)))
 
-        mailings = stampr.Mailing.browse(self.start, self.finish, status="processing")
+        mailings = stampr.mailing.Mailing.browse(self.start, self.finish, status="processing")
 
         for mailing in mailings:
-            assert isinstance(mailing, stampr.Mailing)
+            assert isinstance(mailing, stampr.mailing.Mailing)
 
         mailing_ids = [m.id for m in mailings]
         assert mailing_ids == [1, 2, 3]
 
     def test_bad_status_type(self):
         with raises(TypeError):
-            stampr.Mailing.browse(self.start, self.finish, status=12)
+            stampr.mailing.Mailing.browse(self.start, self.finish, status=12)
 
     def test_bad_status_value(self):
         with raises(ValueError):
-            stampr.Mailing.browse(self.start, self.finish, status="fish")
+            stampr.mailing.Mailing.browse(self.start, self.finish, status="fish")
 
 
 class TestMailingWithStatusAndBatch(Test):
     def test(self):
         for i in [0, 1, 2]:
-            (flexmock(stampr.Client.current)
+            (flexmock(stampr.client.Client.current)
                 .should_receive("_api")
                 .with_args("get", ("batches", self.batch.id, "with", "processing", "1900-01-01T00:00:00", "2000-01-01T00:00:00", i))
                 .and_return(json_data("mailings_%d" % i)))
 
 
-        mailings = stampr.Mailing.browse(self.start, self.finish, status="processing", batch=self.batch)
+        mailings = stampr.mailing.Mailing.browse(self.start, self.finish, status="processing", batch=self.batch)
 
         for mailing in mailings:
-            assert isinstance(mailing, stampr.Mailing)
+            assert isinstance(mailing, stampr.mailing.Mailing)
 
         mailing_ids = [m.id for m in mailings]
         assert mailing_ids == [1, 2, 3]
@@ -372,14 +372,14 @@ class TestMailingWithStatusAndBatch(Test):
 
     def test_bad_status_type(self):
         with raises(TypeError):
-            stampr.Mailing.browse(self.start, self.finish, status=12, batch=self.batch)
+            stampr.mailing.Mailing.browse(self.start, self.finish, status=12, batch=self.batch)
 
 
     def test_bad_status_value(self):
         with raises(ValueError):
-            stampr.Mailing.browse(self.start, self.finish, status="fish", batch=self.batch)
+            stampr.mailing.Mailing.browse(self.start, self.finish, status="fish", batch=self.batch)
 
 
     def test_bad_batch(self):
         with raises(TypeError):
-            stampr.Mailing.browse(self.start, self.finish, status="processing", batch=1)
+            stampr.mailing.Mailing.browse(self.start, self.finish, status="processing", batch=1)

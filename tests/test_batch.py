@@ -17,12 +17,12 @@ class Test(object):
     def setup(self):
         stampr.authenticate("user", "pass")
 
-        self.created = stampr.Batch(batch_id=2, config_id=1)
-        self.uncreated = stampr.Batch(config_id=1)
+        self.created = stampr.batch.Batch(batch_id=2, config_id=1)
+        self.uncreated = stampr.batch.Batch(config_id=1)
 
 class TestBatchInit(Test):
     def test_generate_a_config(self):
-        (flexmock(stampr.Client.current)
+        (flexmock(stampr.client.Client.current)
                 .should_receive("_api")
                 .with_args("post", ("configs", ),
                            returnenvelope=False,
@@ -31,19 +31,19 @@ class TestBatchInit(Test):
                            size="standard",
                            style="color")
                 .and_return({ "config_id": 7 }))
-        subject = stampr.Batch()
+        subject = stampr.batch.Batch()
         assert subject.config_id == 7
 
 
     def test_failure_with_config_and_config_id(self):
         with raises(ValueError):
-            stampr.Batch(config_id=2, config=flexmock())
+            stampr.batch.Batch(config_id=2, config=flexmock())
 
 
 class TestBatchBlock(Test):
     def test_yield_itself(self):
         yielded = None
-        batch = stampr.Batch(config_id=1)
+        batch = stampr.batch.Batch(config_id=1)
         with batch as b:
             yielded = b
 
@@ -66,7 +66,7 @@ class TestBatchInitFromData(Test):
     def setup(self):
         super(TestBatchInitFromData, self).setup()
 
-        self.created_from_data = stampr.Batch(**json_data("batch_create"))
+        self.created_from_data = stampr.batch.Batch(**json_data("batch_create"))
 
     def test_that_it_has_a_config_id(self):
         assert self.created_from_data.config_id == 1
@@ -97,7 +97,7 @@ class TestBatchTemplate(Test):
             self.uncreated.template = 12
 
     def test_fail_if_the_batch_is_already_created(self):
-        with raises(stampr.ReadOnlyError):
+        with raises(stampr.exceptions.ReadOnlyError):
             self.created.template = "hello"
 
 
@@ -121,7 +121,7 @@ class TestBatchStatusCreated(Test):
     def test_accept_a_correct_value_and_update(self):
         subject = self.created
 
-        (flexmock(stampr.Client.current)
+        (flexmock(stampr.client.Client.current)
                 .should_receive("_api")
                 .with_args("post", ["batches", 2], status="hold")
                 .and_return(json_data("batch_create")))
@@ -140,7 +140,7 @@ class TestBatchCreate(Test):
     def test_post_a_creation_request_without_a_template(self):
         subject = self.uncreated
 
-        (flexmock(stampr.Client.current)
+        (flexmock(stampr.client.Client.current)
                 .should_receive("_api")
                 .with_args("post", ["batches"], config_id=1, status="processing")
                 .and_return(json_data("batch_create")))
@@ -150,9 +150,9 @@ class TestBatchCreate(Test):
 
 
     def test_post_a_creation_request_with_a_template(self):
-        subject = stampr.Batch(config_id=1, template="Bleh")
+        subject = stampr.batch.Batch(config_id=1, template="Bleh")
 
-        (flexmock(stampr.Client.current)
+        (flexmock(stampr.client.Client.current)
                 .should_receive("_api")
                 .with_args("post", ["batches"], config_id=1, status="processing", template="Bleh")
                 .and_return(json_data("batch_create")))
@@ -163,9 +163,9 @@ class TestBatchCreate(Test):
 
 class TestBatchDelete(Test):
     def test_delete_the_batch(self):
-        subject = stampr.Batch(config_id=1, template="Bleh", batch_id=2)
+        subject = stampr.batch.Batch(config_id=1, template="Bleh", batch_id=2)
 
-        (flexmock(stampr.Client.current)
+        (flexmock(stampr.client.Client.current)
                 .should_receive("_api")
                 .with_args("delete", ["batches", 2])
                 .and_return(True))
@@ -174,81 +174,81 @@ class TestBatchDelete(Test):
 
 
     def test_fail_if_the_batch_isnt_created_yet(self):
-        with raises(stampr.APIError):
+        with raises(stampr.exceptions.APIError):
             self.uncreated.delete()
 
 
 class TestBatchIndex(Test):
     def test_retreive_a_specific_batch(self):
-        (flexmock(stampr.Client.current)
+        (flexmock(stampr.client.Client.current)
                 .should_receive("_api")
                 .with_args("get", ["batches", 1])
                 .and_return(json_data("batch_index")))
 
-        batch = stampr.Batch[1]
+        batch = stampr.batch.Batch[1]
 
         assert batch.id == 2
 
 
     def test_fail_with_a_negative_id(self):
         with raises(ValueError):
-            stampr.Batch[-1]
+            stampr.batch.Batch[-1]
 
 
     def test_fail_with_a_bad_id(self):
         with raises(TypeError):
-            stampr.Batch["fred"]
+            stampr.batch.Batch["fred"]
 
 
 class TestBatchBrowse(Test):
     def test_retrieve_a_list_over_a_period(self):
         for i in [0, 1, 2]:
-            (flexmock(stampr.Client.current)
+            (flexmock(stampr.client.Client.current)
                 .should_receive("_api")
                 .with_args("get", ("batches", "browse", "1900-01-01T00:00:00", "2000-01-01T00:00:00", i))
                 .and_return(json_data("batches_%d" % i)))
 
         start, end = datetime.datetime(1900, 1, 1, 0, 0, 0, 0), datetime.datetime(2000, 1, 1, 0, 0, 0, 0)
-        batches = stampr.Batch.browse(start, end)
+        batches = stampr.batch.Batch.browse(start, end)
 
         assert [b.id for b in batches] == [2, 3, 4]
 
     def test_fail_with_bad_start(self):
         with raises(TypeError):
-            stampr.Batch.browse(1, 3)
+            stampr.batch.Batch.browse(1, 3)
 
 
 class TestBatchBrowseWithStatus(Test):
     def test_retrieve_a_list_of_batches_over_a_period_with_given_status(self):
         for i in [0, 1, 2]:
-            (flexmock(stampr.Client.current)
+            (flexmock(stampr.client.Client.current)
                 .should_receive("_api")
                 .with_args("get", ("batches", "with", "processing", "1900-01-01T00:00:00", "2000-01-01T00:00:00", i))
                 .and_return(json_data("batches_%d" % i)))
 
         start, finish = datetime.datetime(1900, 1, 1, 0, 0, 0, 0), datetime.datetime(2000, 1, 1, 0, 0, 0, 0)
-        batches = stampr.Batch.browse(start, finish, status="processing")
+        batches = stampr.batch.Batch.browse(start, finish, status="processing")
 
         assert [b.id for b in batches] == [2, 3, 4]
 
     def test_fail_with_a_bad_status_type(self):
         start, finish = datetime.datetime(1900, 1, 1, 0, 0, 0, 0), datetime.datetime(2000, 1, 1, 0, 0, 0, 0)
         with raises(TypeError):
-            stampr.Batch.browse(start, finish, status=12)
+            stampr.batch.Batch.browse(start, finish, status=12)
 
     def test_fail_with_a_bad_status_value(self):
         start, finish = datetime.datetime(1900, 1, 1, 0, 0, 0, 0), datetime.datetime(2000, 1, 1, 0, 0, 0, 0)
         with raises(ValueError):
-            stampr.Batch.browse(start, finish, status="frog")
+            stampr.batch.Batch.browse(start, finish, status="frog")
 
     def test_fail_with_a_bad_period(self):
         with raises(TypeError):
-            stampr.Batch.browse(1, 3, status="processing")
+            stampr.batch.Batch.browse(1, 3, status="processing")
 
 
 class TestBatchMailing(Test):
     def test_create_a_mailing(self):
-        (flexmock(stampr.Client.current)
+        (flexmock(stampr.client.Client.current)
                 .should_receive("_api")
                 .with_args("post", ("configs", ),
                            returnenvelope=False, 
@@ -258,9 +258,9 @@ class TestBatchMailing(Test):
                            style="color")
                 .and_return({ "config_id": 7 }))
 
-        batch = stampr.Batch(batch_id=6, template="frog")
+        batch = stampr.batch.Batch(batch_id=6, template="frog")
 
         mail = batch.mailing()
 
-        assert isinstance(mail, stampr.Mailing)
+        assert isinstance(mail, stampr.mailing.Mailing)
         assert mail.batch_id == 6

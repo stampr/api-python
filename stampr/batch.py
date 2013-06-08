@@ -2,7 +2,7 @@ from __future__ import absolute_import, unicode_literals, print_function, divisi
 
 import datetime
 
-from .utilities import bad_attribute, string
+from .utilities import _bad_attribute, string
 from .client import Client
 from .config import Config
 from .exceptions import APIError, ReadOnlyError
@@ -11,15 +11,16 @@ class BatchMeta(type):
     def __getitem__(self, id):
         '''Get the batch with the specific ID.
             
-            Example
-                batch = stampr.Batch[2451]
+            Example::
+
+                batch = stampr.batch.Batch[2451]
 
             Args:
-                id
-                    [int] ID of batch to retreive.
+                id (int):
+                    ID of batch to retreive.
 
-            Return: 
-                stampr.Batch
+            Returns: 
+                stampr.batch.Batch
         '''
 
         if not isinstance(id, int):
@@ -32,7 +33,22 @@ class BatchMeta(type):
         return self(**batches[0])
 
 class Batch(BatchMeta(str('BatchParent'), (object, ), {})):
-    '''A batch of stampr.Mailing objects'''
+    '''A batch of stampr.mailing.Mailing objects
+
+    If neither config_id or config are provided, then a new, default, config will be applied to this batch.
+    
+    Args:
+        config (stampr.config.Config):
+            Config to use.
+        template (str):
+            Mail-merge template (optional)
+        status (str):
+            ["processing", "hold", "archive"] The initial status of the mailing ("processing")
+        config_id:
+            For internal use only!
+        batch_id:
+            For internal use only!
+    '''
 
     __metaclass__ = BatchMeta
 
@@ -42,21 +58,22 @@ class Batch(BatchMeta(str('BatchParent'), (object, ), {})):
     def browse(cls, start, finish, status=None):
         '''Get the batches between two times.
             
-        Example:
+        Example::
+
             start, finish = datetime.datetime(2012, 1, 1, 0, 0, 0), datetime.now()
-            batches = stampr.Batch.browse(start, finish)
-            batches = stampr.Batch.browse(start, finish, status="processing")
+            batches = stampr.batch.Batch.browse(start, finish)
+            batches = stampr.batch.Batch.browse(start, finish, status="processing")
         
         Args:
-            start
-                [datetime.datetime] Start of time period to get batches for.
-            finish
-                [datetime.datetime] End of time period to get batches for.
-            status
+            start (datetime.datetime):
+                Start of time period to get batches for.
+            finish (datetime.datetime):
+                End of time period to get batches for.
+            status (str):
                 ["processing", "hold", "archive"] Status of batch to find.
         
-        Return:
-            [list of stampr.Batch]
+        Returns:
+            list of stampr.batch.Batch
         '''
         
         if not isinstance(start, datetime.datetime):
@@ -67,9 +84,9 @@ class Batch(BatchMeta(str('BatchParent'), (object, ), {})):
 
         if status is not None:
             if not isinstance(status, string):
-                raise TypeError(bad_attribute(status, cls.STATUSES))
+                raise TypeError(_bad_attribute(status, cls.STATUSES))
             if not status in cls.STATUSES:
-                raise ValueError(bad_attribute(status, cls.STATUSES))
+                raise ValueError(_bad_attribute(status, cls.STATUSES))
 
             search = ("with", status)
         else:
@@ -97,21 +114,6 @@ class Batch(BatchMeta(str('BatchParent'), (object, ), {})):
 
 
     def __init__(self, config=None, template=None, status="processing", config_id=None, batch_id=None,):
-        '''If neither config_id or config are provided, then a new, default, config will be applied to this batch.
-        
-        Args:
-            config
-                [stampr.Config] Config to use.
-            template
-                [str]
-            status
-                ["processing", "hold", "archive"] The initial status of the mailing ("processing")
-            config_id
-                For internal use only!
-            batch_id
-                For internal use only!
-        '''
-
         if config is not None and config_id is not None:
             raise ValueError("Must supply config_id OR config")
 
@@ -123,7 +125,7 @@ class Batch(BatchMeta(str('BatchParent'), (object, ), {})):
 
         elif config is not None:
             if not isinstance(config, Config):
-                raise TypeError("config must be a stampr.Config")
+                raise TypeError("config must be a stampr.config.Config")
             config_id = config.id
 
         else:
@@ -147,6 +149,7 @@ class Batch(BatchMeta(str('BatchParent'), (object, ), {})):
     @property
     def template(self):
         '''Template string, for mail merge, if any. [str, None]'''
+
         return self._template
 
     @template.setter
@@ -168,9 +171,9 @@ class Batch(BatchMeta(str('BatchParent'), (object, ), {})):
     @status.setter
     def status(self, value):
         if not isinstance(value, string):
-            raise TypeError(bad_attribute("status", self.STATUSES))
+            raise TypeError(_bad_attribute("status", self.STATUSES))
         if not value in self.STATUSES:
-            raise ValueError(bad_attribute("status", self.STATUSES))
+            raise ValueError(_bad_attribute("status", self.STATUSES))
 
         # If we have already been created, update the status.
         if self.is_created() and value is not None and self._status != value:
@@ -187,7 +190,7 @@ class Batch(BatchMeta(str('BatchParent'), (object, ), {})):
     def id(self):
         '''Get the id of the batch. Calling this will create the batch first, if required.
     
-        Return:
+        Returns:
             int
         '''
 
@@ -201,8 +204,8 @@ class Batch(BatchMeta(str('BatchParent'), (object, ), {})):
     def create(self):
         '''Create the config on the server.
 
-        Return: 
-            stampr.Config
+        Returns: 
+            stampr.config.Config
         '''
 
         if self.is_created(): # Don't re-create if it already exists.
@@ -235,7 +238,8 @@ class Batch(BatchMeta(str('BatchParent'), (object, ), {})):
     def mailing(self):
         '''Create a Mailing for this Batch.
     
-        Return [stampr.Mailing]
+        Returns:
+            stampr.mailing.Mailing
         '''
 
         from .mailing import Mailing # Avoid circular rependency.

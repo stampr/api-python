@@ -8,25 +8,24 @@ import requests
 import dateutil.parser
 import certifi
 
-from .utilities import bad_attribute, string
-from . import APIError, HTTPError
+from .utilities import _bad_attribute, string
+from .exceptions import APIError, HTTPError
 
 os.environ['REQUESTS_CA_BUNDLE'] = certifi.where()
 
 class Client(object):
-    '''Client that handles the actual RESTful actions.'''
+    '''Client that handles the actual RESTful actions.
+
+    Args:
+        username: [string]
+        password: [string]
+    '''
 
     BASE_URI = "https://testing.dev.stam.pr/api"
     current = None # Current client created via authenticate().
 
     def __init__(self, username, password):
-        '''
-        Args:
-            username
-                [string]
-            password
-                [string]
-        '''
+        
 
         if not isinstance(username, string):
             raise TypeError("username must be a string")
@@ -46,25 +45,26 @@ class Client(object):
     def mail(self, return_address, address, body, config=None, batch=None):
         '''Send a simple HTML or PDF email, in its own batch and default config (unless :batch and/or :config options are used).
         
-        Example:
-            client = stampr.Client("user", "pass")
+        Example::
+
+            client = stampr.client.Client("user", "pass")
             client.mail(return_address, address1, "<html><body><p>Hello world!</p></body></html>")
             client.mail(return_address, address2, "<html><body><p>Goodbye world!</p></body></html>")
         
         Args:
-            return_address
-                [string] Return address.
-            address 
-                [string] Address
-            body
-                [string] HTML or PDF data.
-            config
-                [stampr.Config]
-            batch
-                [stampr.Batch]
+            return_address (str):
+                Return address.
+            address (str):
+                Address
+            body (str, bytes):
+                HTML or PDF data.
+            config (stampr.config.Config):
+                Config to use for this mailing (or default will be created).
+            batch (stampr.batch.Batch):
+                Batch to use for this mailing (or default will be created).
 
-        Return:
-            [stampr.Mailing] The mailing object representing the mail sent.
+        Returns:
+            [stampr.mailing.Mailing] The mailing object representing the mail sent.
         '''
 
         from .config import Config
@@ -80,12 +80,12 @@ class Client(object):
         if config is None:
             config = Config()
         elif not isinstance(config, Config):
-            raise TypeError("config must be a stampr.Config")
+            raise TypeError("config must be a stampr.config.Config")
 
         if batch is None:
             batch = Batch(config=config)
         elif not isinstance(batch, Batch):
-            raise TypeError("batch must be a stampr.Batch")
+            raise TypeError("batch must be a stampr.batch.Batch")
 
         with Mailing(batch=batch) as m:
             m.address = address

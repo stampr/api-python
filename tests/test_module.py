@@ -16,15 +16,15 @@ class TestAuthenticate(object):
 
 class TestMail(object):
     def test_no_authentication(self):
-        stampr.Client.current = None
-        with raises(stampr.APIError):
+        stampr.client.Client.current = None
+        with raises(stampr.exceptions.APIError):
             stampr.mail("from", "to", "body")
 
     def test_delegates_to_the_client(self):
         stampr.authenticate("user", "pass")
 
-        new_mailing = flexmock(stampr.Mailing)
-        (flexmock(stampr.Client.current)
+        new_mailing = flexmock(stampr.mailing.Mailing)
+        (flexmock(stampr.client.Client.current)
             .should_receive("mail")
             .with_args("from", "to", "body", None, None)
             .and_return(new_mailing))

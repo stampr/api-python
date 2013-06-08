@@ -14,7 +14,7 @@ import stampr
 
 class Test(object):
     def setup(self):
-        self.client = stampr.Client("user", "pass")
+        self.client = stampr.client.Client("user", "pass")
 
 class TestClientInit(Test):
     def test_creation(self):

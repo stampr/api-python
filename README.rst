@@ -23,6 +23,7 @@ On the command line::
 Usage
 -----
 
+
 Import and authentication
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -32,12 +33,14 @@ Before using stampr, it must be imported and your account authenticated::
 
     stampr.authenticate("username", "password")
 
-### Example of sending letters via the simple API
+Sending letters via the simple API
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 In this case, all mailings will be in individual batches and with default config::
 
     stampr.mail(my_address, dest_address_1, body1)
     stampr.mail(my_address, dest_address_2, body2)
+
 
 More complex example
 ~~~~~~~~~~~~~~~~~~~~
@@ -45,10 +48,10 @@ More complex example
 Managing config and grouping mailings into a single batch::
 
     # Config can be shared by batches.
-    config = stampr.Config()
+    config = stampr.config.Config()
 
     # Batches contain one or more mailings.
-    with stampr.Batch(config=config) as b:
+    with stampr.batch.Batch(config=config) as b:
         with b.mailing() as m:
             m.address = dest_address_1
             m.return_address = my_address
@@ -62,32 +65,34 @@ Managing config and grouping mailings into a single batch::
 And without using blocks::
 
     # Config can be shared by batches.
-    config = stampr.Config()
+    config = stampr.config.Config()
 
     # Batches contain one or more mailings.
-    batch = stampr.Batch(config=config)
+    batch = stampr.batch.Batch(config=config)
 
-    mailing1 = Mailing(batch=batch)
+    mailing1 = stampr.mailing.Mailing(batch=batch)
     mailing1.address = dest_address_1
     mailing1.return_address = my_address
     mailing1.data = data1
     mailing1.mail()
 
-    mailing2 = Mailing(batch=batch)
+    mailing2 = stampr.mailing.Mailing(batch=batch)
     mailing2.address = dest_address_2
     mailing2.return_address = my_address
     mailing2.data = data2
     mailing2.mail()
+
 
 Configs
 ~~~~~~~
 
 Browsing::
 
-    config = stampr.Config[123123]
-    configs = stampr.Config.all()
+    config = stampr.config.Config[123123]
+    configs = stampr.config.Config.all()
 
 Configs cannot be deleted.
+
 
 Batches
 ~~~~~~~
@@ -96,22 +101,23 @@ Browsing::
 
     import datetime
 
-    batch = stampr.Batch[2451]
+    batch = stampr.batch.Batch[2451]
 
     start, end = datetime.datetime(2012, 1, 1, 0, 0, 0), datetime.now()
 
-    batches = stampr.Batch.browse(start, end)
-    batches = stampr.Batch.browse(start, end, status="processing")
+    batches = stampr.batch.Batch.browse(start, end)
+    batches = stampr.batch.Batch.browse(start, end, status="processing")
 
 Updating::
 
-    batch = stampr.Batch[2451]
+    batch = stampr.batch.Batch[2451]
     batch.status = "archive"
 
 Deletion::
 
-    batch = stampr.Batch[2451]
+    batch = stampr.batch.Batch[2451]
     batch.delete()
+
 
 Mailings
 ~~~~~~~~
@@ -119,19 +125,19 @@ Mailings
 Browsing::
 
     import datetime
-    mailing = stampr.Mailing[123123]
+    mailing = stampr.mailing.Mailing[123123]
 
     start, end = datetime.datetime(2012, 1, 1, 0, 0, 0), datetime.now()
-    my_batch = stampr.Batch[1234]
+    my_batch = stampr.batch.Batch[1234]
 
-    mailings = stampr.Mailing.browse(start, end)
-    mailings = stampr.Mailing.browse(start, end, status="processing"]
-    mailings = stampr.Mailing.browse(start, end, batch=my_batch]
-    mailings = stampr.Mailing.browse(start, end, status="processing", batch=my_batch]
+    mailings = stampr.mailing.Mailing.browse(start, end)
+    mailings = stampr.mailing.Mailing.browse(start, end, status="processing"]
+    mailings = stampr.mailing.Mailing.browse(start, end, batch=my_batch]
+    mailings = stampr.mailing.Mailing.browse(start, end, status="processing", batch=my_batch]
 
 Syncing current status::
 
-    mailing = stampr.Mailing[2451]
+    mailing = stampr.mailing.Mailing[2451]
     mailing.status #=> :received
 
     # ...later...
@@ -140,7 +146,7 @@ Syncing current status::
 
 Deletion::
 
-    mailing = stampr.Mailing[2451]
+    mailing = stampr.mailing.Mailing[2451]
     mailing.delete()
 
 
@@ -149,7 +155,7 @@ Mail-merge with Mustache templating language
 
 Using Mustache (http://mustache.github.io/)::
 
-    with stampr.Batch() as b:
+    with stampr.batch.Batch() as b:
         b.template = "<html>Hello {{name}}, would you like to buy some {{items}}!</html>"
 
         with b.mailing() as m:

@@ -1,6 +1,6 @@
 from __future__ import absolute_import, unicode_literals, print_function, division
 
-from .utilities import bad_attribute, string
+from .utilities import _bad_attribute, string
 from .client import Client
 from .exceptions import ReadOnlyError
 
@@ -8,10 +8,12 @@ class ConfigMeta(type):
     def __getitem__(self, id):
         '''Get the config with a specific id.
 
-        Example:
-            config = stampr.Config[123123]
-        Return:
-            [stampr.Config]
+        Example::
+
+            config = stampr.config.Config[123123]
+
+        Returns:
+            stampr.config.Config
         '''
 
         if not isinstance(id, int):
@@ -30,7 +32,24 @@ class ConfigMeta(type):
 
 
 class Config(ConfigMeta(str('ConfigParent'), (object, ), {})):
-    '''Mailing configuration to be used with Batches'''
+    '''Mailing configuration to be used with Batches
+
+    Args:
+        size (str):
+            ["standard"]
+        turnaround (str):
+            ["threeday"]
+        style (str):
+            ["color"]
+        output (str):
+            ["single"]
+        return_envelope (boolean):
+            [False]
+        config_id: 
+            For internal use only!
+        user_id:
+            For internal use only!
+    '''
 
     SIZES = ["standard"]
     TURNAROUNDS = ["threeday"]
@@ -43,11 +62,12 @@ class Config(ConfigMeta(str('ConfigParent'), (object, ), {})):
     def all(cls):
         '''Get a list of all configs defined in your Stampr account.
         
-        Example:
-            configs = stampr.Config.all
+        Example::
+
+            configs = stampr.config.Config.all
         
-        Return:
-            [Array<stampr.Config>]
+        Returns:
+            list of stampr.config.Config
         '''
 
         all_configs = []
@@ -71,8 +91,8 @@ class Config(ConfigMeta(str('ConfigParent'), (object, ), {})):
 
     def is_created(self):
         '''Has the Config been created already?'''
-        return self._id is not None
 
+        return self._id is not None
 
     
     def __init__(self,
@@ -83,23 +103,6 @@ class Config(ConfigMeta(str('ConfigParent'), (object, ), {})):
                  return_envelope=False,
                  config_id=None,
                  user_id=None):
-        '''
-        Args:
-            size
-                ["standard"]
-            turnaround
-                ["threeday"]
-            style
-                ["color"]
-            output
-                ["single"]
-            return_envelope
-                [False]
-            config_id
-                For internal use only!
-            user_id
-                For internal use only!
-        '''
 
         self._size = size
         self._turnaround = turnaround
@@ -122,9 +125,9 @@ class Config(ConfigMeta(str('ConfigParent'), (object, ), {})):
         if self.is_created():
             raise ReadOnlyError("size")
         if not isinstance(value, string):
-            raise TypeError(bad_attribute("size", self.SIZES))
+            raise TypeError(_bad_attribute("size", self.SIZES))
         if value not in self.SIZES:
-            raise ValueError(bad_attribute("size", self.SIZES))
+            raise ValueError(_bad_attribute("size", self.SIZES))
 
         self._size = value
 
@@ -140,9 +143,9 @@ class Config(ConfigMeta(str('ConfigParent'), (object, ), {})):
         if self.is_created():
             raise ReadOnlyError("turnaround")
         if not isinstance(value, string):
-            raise TypeError(bad_attribute("turnaround", self.TURNAROUNDS))
+            raise TypeError(_bad_attribute("turnaround", self.TURNAROUNDS))
         if value not in self.TURNAROUNDS:
-            raise ValueError(bad_attribute("turnaround", self.TURNAROUNDS))
+            raise ValueError(_bad_attribute("turnaround", self.TURNAROUNDS))
 
         self._turnaround = value
 
@@ -158,9 +161,9 @@ class Config(ConfigMeta(str('ConfigParent'), (object, ), {})):
         if self.is_created():
             raise ReadOnlyError("style")
         if not isinstance(value, string):
-            raise TypeError(bad_attribute("style", self.STYLES))
+            raise TypeError(_bad_attribute("style", self.STYLES))
         if value not in self.STYLES:
-            raise ValueError(bad_attribute("style", self.STYLES))
+            raise ValueError(_bad_attribute("style", self.STYLES))
 
         self._style = value
 
@@ -176,9 +179,9 @@ class Config(ConfigMeta(str('ConfigParent'), (object, ), {})):
         if self.is_created():
             raise ReadOnlyError("output")
         if not isinstance(value, string):
-            raise TypeError(bad_attribute("output", self.OUTPUTS))
+            raise TypeError(_bad_attribute("output", self.OUTPUTS))
         if value not in self.OUTPUTS:
-            raise ValueError(bad_attribute("output", self.OUTPUTS))
+            raise ValueError(_bad_attribute("output", self.OUTPUTS))
 
         self._output = value
 
@@ -194,7 +197,7 @@ class Config(ConfigMeta(str('ConfigParent'), (object, ), {})):
         if self.is_created():
             raise ReadOnlyError("return_envelope")
         if value not in self.RETURN_ENVELOPES:
-            raise TypeError(bad_attribute("return_envelope", self.RETURN_ENVELOPES))
+            raise TypeError(_bad_attribute("return_envelope", self.RETURN_ENVELOPES))
 
         self._return_envelope = value
 
@@ -202,6 +205,7 @@ class Config(ConfigMeta(str('ConfigParent'), (object, ), {})):
     @property
     def id(self):
         '''Get the id of the configuration. Calling this will create the config first, if required. [int]'''
+
         if not self.is_created():
             self.create()
         return self._id
