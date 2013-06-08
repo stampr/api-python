@@ -168,6 +168,22 @@ Using Mustache (http://mustache.github.io/)::
             m.return_address = my_address
             m.data = { "name": "Romy", "items": "scintillating hackers" }
 
+Building
+--------
+
+Additional dependencies::
+
+    $ pip install shovel
+    $ pip instlal sphinx
+
+Build documentation with::
+
+    $ shovel docs
+
+Build release package::
+
+    $ shovel release
+
 
 Contributing
 ------------
