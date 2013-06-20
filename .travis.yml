@@ -4,6 +4,9 @@ python:
   - "3.2"
   - "3.3"
 # command to install dependencies
-install: "pip install -r requirements.txt --use-mirrors"
+install: 
+    - "pip install . --use-mirrors"
+    - "pip install pytest"
+    - "pip install flexmock"
 # command to run tests
 script: py.test
